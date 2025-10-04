@@ -2,16 +2,19 @@ import os
 from google import genai
 from google.genai import types
 
-# ✅ Initialize Gemini client
-client = genai.Client(api_key="AIzaSyAdLamwSmWes7xQxf8mI0X3JtmhRNe35qQ")  # <-- replace with your API key
+# Load API key from environment
+API_KEY = os.getenv("GOOGLE_API_KEY")
 
-# ✅ Folder containing your images
-image_folder = r'optiv_sec\file-cleanser\src'  # use raw string to avoid \f issue
+# Initialize Gemini client
+client = genai.Client(api_key=API_KEY)
 
-# ✅ Supported image formats
+# Folder containing your images
+image_folder = r'optiv_sec\file-cleanser\src'
+
+# Supported image formats
 supported_formats = ('.png', '.jpg', '.jpeg', '.bmp', '.webp')
 
-# ✅ Loop through all images in the folderr
+# Loop through all images in the folder
 for filename in os.listdir(image_folder):
     if filename.lower().endswith(supported_formats):
         image_path = os.path.join(image_folder, filename)
@@ -22,14 +25,19 @@ for filename in os.listdir(image_folder):
             with open(image_path, 'rb') as f:
                 image_bytes = f.read()
 
+            # Determine MIME type
+            if filename.lower().endswith(('.jpg', '.jpeg')):
+                mime_type = 'image/jpeg'
+            elif filename.lower().endswith('.png'):
+                mime_type = 'image/png'
+            else:
+                mime_type = 'application/octet-stream'  # fallback
+
             # Generate caption using Gemini
             response = client.models.generate_content(
                 model='gemini-2.5-flash',
                 contents=[
-                    types.Part.from_bytes(
-                        data=image_bytes,
-                        mime_type='image/jpeg' if filename.lower().endswith('.jpg') or filename.lower().endswith('.jpeg') else 'image/png',
-                    ),
+                    types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
                     'Describe this image in one or two lines as a caption.'
                 ]
             )
