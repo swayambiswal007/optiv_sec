@@ -1,12 +1,24 @@
-pytesseract
-pillow
-opencv-python
-pdfplumber
-python-pptx
-python-docx
-pandas
-openpyxl
-spacy
-tqdm
-fastapi
-uvicorn
+# Core dependencies
+pytesseract>=0.3.10
+opencv-python>=4.8.0
+Pillow>=10.0.0
+numpy>=1.24.0
+
+# Text processing
+regex>=2023.8.8
+
+# Document processing
+openpyxl>=3.1.0              # Excel files
+pandas>=2.0.0                # CSV and Excel
+pdf2image>=1.16.3            # PDF conversion
+python-docx>=0.8.11          # Word documents
+
+# Progress and CLI
+tqdm>=4.65.0
+click>=8.0.0
+colorama>=0.4.6
+
+# Optional but recommended
+PyPDF2>=3.0.0                # PDF text extraction
+lxml>=4.9.0                  # XML processing
+python-magic>=0.4.27         # File type detection

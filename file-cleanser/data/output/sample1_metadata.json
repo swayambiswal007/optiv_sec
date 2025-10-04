@@ -1,0 +1,20 @@
+{
+  "input_file": "data\\input\\sample1.png",
+  "file_type": "image",
+  "processed_at": "2025-10-04T18:02:31.560780",
+  "file_size": 15940,
+  "sensitive_items_found": 3,
+  "sensitive_types": [
+    "cvv"
+  ],
+  "output_files": [
+    "data\\output\\sample1_redacted.txt",
+    "data\\output\\sample1_redacted.png"
+  ],
+  "redaction_applied": true,
+  "document_type": "unknown",
+  "config": {
+    "redaction_mode": "blur",
+    "blur_intensity": 45
+  }
+}

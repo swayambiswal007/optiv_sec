@@ -1,0 +1,23 @@
+{
+  "input_file": "data\\input\\sample2.png",
+  "file_type": "image",
+  "processed_at": "2025-10-04T18:02:31.772758",
+  "file_size": 33222,
+  "sensitive_items_found": 4,
+  "sensitive_types": [
+    "date_dmy",
+    "aadhaar_spaced",
+    "name_after_keyword",
+    "gender_field"
+  ],
+  "output_files": [
+    "data\\output\\sample2_redacted.txt",
+    "data\\output\\sample2_redacted.png"
+  ],
+  "redaction_applied": true,
+  "document_type": "unknown",
+  "config": {
+    "redaction_mode": "blur",
+    "blur_intensity": 45
+  }
+}

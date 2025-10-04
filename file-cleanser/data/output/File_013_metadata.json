@@ -1,0 +1,23 @@
+{
+  "input_file": "data\\input\\File_013.png",
+  "file_type": "image",
+  "processed_at": "2025-10-04T18:25:35.617297",
+  "file_size": 41537,
+  "sensitive_items_found": 11,
+  "sensitive_types": [
+    "swift_code",
+    "generic_phone",
+    "cvv",
+    "aadhaar_compact"
+  ],
+  "output_files": [
+    "data\\output\\File_013_redacted.txt",
+    "data\\output\\File_013_redacted.png"
+  ],
+  "redaction_applied": true,
+  "document_type": "unknown",
+  "config": {
+    "redaction_mode": "blur",
+    "blur_intensity": 45
+  }
+}

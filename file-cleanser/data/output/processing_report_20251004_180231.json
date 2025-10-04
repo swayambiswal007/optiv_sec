@@ -1,0 +1,22 @@
+{
+  "generated_at": "2025-10-04T18:02:31.780487",
+  "summary": {
+    "total_files": 3,
+    "files_processed": 3,
+    "files_failed": 0,
+    "files_skipped": 0,
+    "success_rate": "100.00%",
+    "sensitive_items_found": 9,
+    "processing_time_seconds": 1.97
+  },
+  "by_file_type": {
+    "image": 3
+  },
+  "errors": [],
+  "configuration": {
+    "redaction_mode": "blur",
+    "blur_intensity": 45,
+    "supported_formats": 32,
+    "sensitive_patterns": 68
+  }
+}

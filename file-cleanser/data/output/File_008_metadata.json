@@ -1,0 +1,24 @@
+{
+  "input_file": "data\\input\\File_008.xlsx",
+  "file_type": "excel",
+  "processed_at": "2025-10-04T18:15:16.677100",
+  "file_size": 23843,
+  "sensitive_items_found": 694,
+  "sensitive_types": [
+    "email",
+    "employee_id",
+    "domain",
+    "swift_code",
+    "zipcode_us",
+    "cvv"
+  ],
+  "output_files": [
+    "data\\output\\File_008_redacted.xlsx"
+  ],
+  "redaction_applied": true,
+  "document_type": "unknown",
+  "config": {
+    "redaction_mode": "blur",
+    "blur_intensity": 45
+  }
+}
