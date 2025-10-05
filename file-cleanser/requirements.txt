@@ -22,3 +22,6 @@ colorama>=0.4.6
 PyPDF2>=3.0.0                # PDF text extraction
 lxml>=4.9.0                  # XML processing
 python-magic>=0.4.27         # File type detection
+
+#ai apis
+google-generativeai>=0.5.3

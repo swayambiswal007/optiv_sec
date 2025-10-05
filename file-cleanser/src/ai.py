@@ -14,9 +14,9 @@ image_folder = r'optiv_sec\file-cleanser\src'
 # Supported image formats
 supported_formats = ('.png', '.jpg', '.jpeg', '.bmp', '.webp')
 
-# Loop through all images in the folder
-for filename in os.listdir(image_folder):
-    if filename.lower().endswith(supported_formats):
+filename = "sample.png"
+image_path= r'optiv_sec\file-cleanser\data\input\sample.png'
+if filename.lower().endswith(supported_formats):
         image_path = os.path.join(image_folder, filename)
         print(f"\n📷 Processing: {filename}")
 
