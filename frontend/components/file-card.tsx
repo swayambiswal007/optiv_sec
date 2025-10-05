@@ -77,16 +77,11 @@ export function FileCard({
       </div>
 
       {/* Progress Section */}
-      <div className="mt-4 space-y-2">
+      <div className="mt-4">
         <ProgressBar
           label={status === "uploading" ? "Uploading" : "Upload"}
           value={uploadProgress}
           success={uploadProgress === 100}
-        />
-        <ProgressBar
-          label="Processing"
-          value={processingProgress}
-          success={status === "done"}
         />
       </div>
     </div>

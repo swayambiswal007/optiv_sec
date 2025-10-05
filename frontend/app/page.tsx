@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react";
 import {
   UploadCloud,
   ImageIcon,
@@ -12,36 +12,50 @@ import {
   AlertCircle,
   Loader2,
   XCircle,
-} from "lucide-react"
-import { cn } from "@/lib/utils"
-import { UploadArea } from "@/components/upload-area"
-import { FileCard } from "@/components/file-card"
-import { ResultsTable } from "@/components/results-table"
-import { ParticlesBg } from "@/components/particles-bg"
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { UploadArea } from "@/components/upload-area";
+import { FileCard } from "@/components/file-card";
+import { ResultsTable } from "@/components/results-table";
+import { ParticlesBg } from "@/components/particles-bg";
 
-type FileStatus = "idle" | "uploading" | "uploaded" | "processing" | "done" | "error"
-type SupportedKind = "image" | "pdf" | "text" | "csv" | "xlsx" | "json" | "xml" | "doc"
+type FileStatus =
+  | "idle"
+  | "uploading"
+  | "uploaded"
+  | "processing"
+  | "done"
+  | "error";
+type SupportedKind =
+  | "image"
+  | "pdf"
+  | "text"
+  | "csv"
+  | "xlsx"
+  | "json"
+  | "xml"
+  | "doc";
 
 type AnalyzedResult = {
-  id: string
-  name: string
-  kind: SupportedKind
-  description: string
-  keyFindings: string[]
-}
+  id: string;
+  name: string;
+  kind: SupportedKind;
+  description: string;
+  keyFindings: string[];
+};
 
 type TrackedFile = {
-  id: string
-  file: File
-  name: string
-  size: number
-  kind: SupportedKind
-  previewUrl?: string
-  uploadProgress: number
-  processingProgress: number
-  status: FileStatus
-  error?: string
-}
+  id: string;
+  file: File;
+  name: string;
+  size: number;
+  kind: SupportedKind;
+  previewUrl?: string;
+  uploadProgress: number;
+  processingProgress: number;
+  status: FileStatus;
+  error?: string;
+};
 
 const ACCEPT = [
   "image/*",
@@ -54,7 +68,7 @@ const ACCEPT = [
   "application/xml",
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-].join(",")
+].join(",");
 
 const SUPPORTED_EXTS = [
   "png",
@@ -74,136 +88,179 @@ const SUPPORTED_EXTS = [
   "xml",
   "docx",
   "doc",
-]
+];
 
 function uid() {
-  return Math.random().toString(36).slice(2) + Date.now().toString(36)
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
 function getExt(name: string) {
-  const parts = name.toLowerCase().split(".")
-  return parts.length > 1 ? parts.pop()! : ""
+  const parts = name.toLowerCase().split(".");
+  return parts.length > 1 ? parts.pop()! : "";
 }
 
 function humanSize(bytes: number) {
-  if (bytes === 0) return "0 B"
-  const k = 1024
-  const sizes = ["B", "KB", "MB", "GB"]
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`
+  if (bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${
+    sizes[i]
+  }`;
 }
 
 function kindFromFile(file: File): SupportedKind | null {
-  const ext = getExt(file.name)
-  const type = file.type
-  if (type.startsWith("image/")) return "image"
-  if (type === "application/pdf" || ext === "pdf") return "pdf"
-  if (type === "text/plain" || ext === "txt") return "text"
-  if (type === "text/csv" || ext === "csv") return "csv"
-  if (type.includes("spreadsheet") || ext === "xlsx" || ext === "xls") return "xlsx"
-  if (type === "application/json" || ext === "json") return "json"
-  if (type === "application/xml" || type === "text/xml" || ext === "xml") return "xml"
-  if (type.includes("word") || ext === "doc" || ext === "docx") return "doc"
-  return null
+  const ext = getExt(file.name);
+  const type = file.type;
+  if (type.startsWith("image/")) return "image";
+  if (type === "application/pdf" || ext === "pdf") return "pdf";
+  if (type === "text/plain" || ext === "txt") return "text";
+  if (type === "text/csv" || ext === "csv") return "csv";
+  if (type.includes("spreadsheet") || ext === "xlsx" || ext === "xls")
+    return "xlsx";
+  if (type === "application/json" || ext === "json") return "json";
+  if (type === "application/xml" || type === "text/xml" || ext === "xml")
+    return "xml";
+  if (type.includes("word") || ext === "doc" || ext === "docx") return "doc";
+  return null;
 }
 
 function isSupported(file: File) {
-  const ext = getExt(file.name)
-  if (!SUPPORTED_EXTS.includes(ext)) return false
-  return kindFromFile(file) !== null
+  const ext = getExt(file.name);
+  if (!SUPPORTED_EXTS.includes(ext)) return false;
+  return kindFromFile(file) !== null;
 }
 
 function iconForKind(kind: SupportedKind) {
   switch (kind) {
     case "image":
-      return ImageIcon
+      return ImageIcon;
     case "pdf":
-      return FileText
+      return FileText;
     case "text":
-      return FileText
+      return FileText;
     case "csv":
-      return FileSpreadsheet
+      return FileSpreadsheet;
     case "xlsx":
-      return FileSpreadsheet
+      return FileSpreadsheet;
     case "json":
-      return FileJson
+      return FileJson;
     case "xml":
-      return FileType
+      return FileType;
     case "doc":
-      return FileText
+      return FileText;
     default:
-      return FileIcon
+      return FileIcon;
   }
 }
 
-function mockDescribe(kind: SupportedKind, name: string, size: number) {
-  const base = `“${name}” (${humanSize(size)})`
-  switch (kind) {
-    case "image":
-      return `${base} appears to be an image; analysis infers key subjects, color palette, and possible context.`
-    case "pdf":
-      return `${base} is a PDF document; likely contains formatted text with potential images or tables.`
-    case "text":
-      return `${base} is a plain text file; content is likely unstructured notes or logs.`
-    case "csv":
-      return `${base} is a CSV dataset; tabular structure with delimited fields.`
-    case "xlsx":
-      return `${base} is a spreadsheet; multiple sheets and formatted cells are possible.`
-    case "json":
-      return `${base} is a JSON file; hierarchical key-value data structure detected.`
-    case "xml":
-      return `${base} is an XML file; structured markup with tags and attributes.`
-    case "doc":
-      return `${base} is a Word document; styled text and embedded media possible.`
-  }
-}
+// API call function to analyze files with backend
+async function analyzeFilesWithBackend(
+  files: TrackedFile[]
+): Promise<AnalyzedResult[]> {
+  const formData = new FormData();
 
-function mockFindings(kind: SupportedKind) {
-  switch (kind) {
-    case "image":
-      return ["Detected dominant colors", "Potential subjects identified", "EXIF-like metadata (mocked)"]
-    case "pdf":
-      return ["Headings and sections parsed", "Text blocks extracted", "Embedded image detection"]
-    case "text":
-      return ["Language detected", "Keyword frequency approx.", "Potential TODOs or dates"]
-    case "csv":
-      return ["Column names recognized", "Missing values estimation", "Outlier detection (mocked)"]
-    case "xlsx":
-      return ["Multiple sheets scan (mocked)", "Cell types inferred", "Basic summary stats"]
-    case "json":
-      return ["Keys and nesting depth", "Array lengths sampled", "Schema-like shape (mocked)"]
-    case "xml":
-      return ["Root tag identified", "Namespaces (if any)", "Node counts by tag"]
-    case "doc":
-      return ["Headings styled", "Tables/images check", "Word count approx."]
+  // Add files to form data
+  files.forEach((file) => {
+    formData.append("files", file.file);
+  });
+
+  try {
+    const response = await fetch("http://localhost:8000/analyze", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Helpers to sanitize AI output for UI
+    const sanitizeDescription = (text: string): string => {
+      if (!text) return "";
+      let t = String(text).trim();
+      // Remove leading "Filename" and optional (size) prefix
+      t = t.replace(/^\s*\"[^\"\n]+\"\s*(\([^\)]*\))?\s*/g, "");
+      return t.trim();
+    };
+    const sanitizeFinding = (text: string): string => {
+      if (!text) return "";
+      let t = String(text).trim();
+      // Remove markdown bold markers
+      t = t.replace(/\*\*(.*?)\*\*/g, "$1");
+      // Remove leading bullets/symbols
+      t = t.replace(/^[\u2022\-*]+\s*/, "");
+      return t.trim();
+    };
+
+    // Convert backend response to frontend format
+    return data.results.map((result: any, index: number) => {
+      const file = files[index];
+      return {
+        id: file.id,
+        name: result.fileName,
+        kind: result.type.toLowerCase() as SupportedKind,
+        description: sanitizeDescription(result.description),
+        keyFindings: Array.isArray(result.keyFindings)
+          ? result.keyFindings.map(sanitizeFinding)
+          : [],
+      };
+    });
+  } catch (error) {
+    console.error("Error analyzing files:", error);
+    throw new Error("Failed to analyze files with AI");
   }
 }
 
 export default function Page() {
-  const [files, setFiles] = useState<TrackedFile[]>([])
-  const [errors, setErrors] = useState<string[]>([])
-  const [analyzing, setAnalyzing] = useState(false)
-  const [results, setResults] = useState<AnalyzedResult[]>([])
+  const [files, setFiles] = useState<TrackedFile[]>([]);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [results, setResults] = useState<AnalyzedResult[]>([]);
+  const [backendConnected, setBackendConnected] = useState<boolean | null>(
+    null
+  );
+
+  // Check backend connection on mount
+  useEffect(() => {
+    const checkBackend = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/");
+        if (response.ok) {
+          setBackendConnected(true);
+        } else {
+          setBackendConnected(false);
+        }
+      } catch (error) {
+        setBackendConnected(false);
+        console.warn("Backend not available:", error);
+      }
+    };
+    checkBackend();
+  }, []);
 
   // cleanup object URLs
   useEffect(() => {
     return () => {
-      files.forEach((f) => f.previewUrl && URL.revokeObjectURL(f.previewUrl))
-    }
-  }, [files])
+      files.forEach((f) => f.previewUrl && URL.revokeObjectURL(f.previewUrl));
+    };
+  }, [files]);
 
   const onFilesSelected = useCallback((incoming: File[]) => {
-    const newErrors: string[] = []
-    const toAdd: TrackedFile[] = []
+    const newErrors: string[] = [];
+    const toAdd: TrackedFile[] = [];
 
     incoming.forEach((file) => {
       if (!isSupported(file)) {
-        newErrors.push(`Unsupported file: ${file.name}`)
-        return
+        newErrors.push(`Unsupported file: ${file.name}`);
+        return;
       }
-      const kind = kindFromFile(file)!
-      const id = uid()
-      const previewUrl = kind === "image" ? URL.createObjectURL(file) : undefined
+      const kind = kindFromFile(file)!;
+      const id = uid();
+      const previewUrl =
+        kind === "image" ? URL.createObjectURL(file) : undefined;
       toAdd.push({
         id,
         file,
@@ -214,98 +271,132 @@ export default function Page() {
         uploadProgress: 0,
         processingProgress: 0,
         status: "uploading",
-      })
-    })
+      });
+    });
 
-    if (newErrors.length) setErrors((prev) => [...prev, ...newErrors])
-    if (!toAdd.length) return
+    if (newErrors.length) setErrors((prev) => [...prev, ...newErrors]);
+    if (!toAdd.length) return;
 
-    setFiles((prev) => [...prev, ...toAdd])
+    setFiles((prev) => [...prev, ...toAdd]);
 
     // Simulate upload progress
     toAdd.forEach((tf) => {
       const step = () => {
         setFiles((prev) =>
           prev.map((f) => {
-            if (f.id !== tf.id) return f
-            const inc = Math.floor(10 + Math.random() * 20)
-            const next = Math.min(100, f.uploadProgress + inc)
-            return { ...f, uploadProgress: next, status: next === 100 ? "uploaded" : "uploading" }
-          }),
-        )
+            if (f.id !== tf.id) return f;
+            const inc = Math.floor(10 + Math.random() * 20);
+            const next = Math.min(100, f.uploadProgress + inc);
+            return {
+              ...f,
+              uploadProgress: next,
+              status: next === 100 ? "uploaded" : "uploading",
+            };
+          })
+        );
         if (tf.uploadProgress < 100) {
-          setTimeout(step, 150 + Math.random() * 200)
+          setTimeout(step, 150 + Math.random() * 200);
         }
-      }
-      setTimeout(step, 250)
-    })
-  }, [])
+      };
+      setTimeout(step, 250);
+    });
+  }, []);
 
-  const hasFiles = files.length > 0
-  const canAnalyze = hasFiles && files.some((f) => f.status === "uploaded" || f.status === "done")
+  const hasFiles = files.length > 0;
+  const canAnalyze =
+    hasFiles &&
+    files.some((f) => f.status === "uploaded" || f.status === "done");
 
   const analyze = async () => {
-    setAnalyzing(true)
-    setResults([])
+    setAnalyzing(true);
+    setResults([]);
 
-    // sequential-ish processing with per-file progress bars
-    const processOne = (f: TrackedFile, idx: number) =>
-      new Promise<void>((resolve) => {
-        // progress ticker
-        let progress = 0
-        const tick = () => {
-          progress = Math.min(100, progress + Math.floor(10 + Math.random() * 15))
-          setFiles((prev) =>
-            prev.map((x) => (x.id === f.id ? { ...x, processingProgress: progress, status: "processing" } : x)),
-          )
-          if (progress < 100) {
-            setTimeout(tick, 180 + Math.random() * 220)
+    // Get files ready for analysis
+    const filesToAnalyze = files.filter(
+      (f) => f.status === "uploaded" || f.status === "done"
+    );
+
+    // Set all files to processing status
+    setFiles((prev) =>
+      prev.map((f) =>
+        filesToAnalyze.some((fta) => fta.id === f.id)
+          ? { ...f, status: "processing" as FileStatus, processingProgress: 0 }
+          : f
+      )
+    );
+
+    // Simulate progress for visual feedback
+    const progressInterval = setInterval(() => {
+      setFiles((prev) =>
+        prev.map((f) => {
+          if (f.status === "processing" && f.processingProgress < 90) {
+            const increment = Math.floor(5 + Math.random() * 10);
+            return {
+              ...f,
+              processingProgress: Math.min(
+                90,
+                f.processingProgress + increment
+              ),
+            };
           }
-        }
-        setTimeout(tick, 150)
+          return f;
+        })
+      );
+    }, 200);
 
-        // mock "AI" delay and result
-        const totalDelay = 1000 + Math.random() * 1500 + idx * 200
-        setTimeout(() => {
-          const description = mockDescribe(f.kind, f.name, f.size)
-          const keyFindings = mockFindings(f.kind)
-          setResults((prev) => [
-            ...prev,
-            {
-              id: f.id,
-              name: f.name,
-              kind: f.kind,
-              description,
-              keyFindings,
-            },
-          ])
-          setFiles((prev) => prev.map((x) => (x.id === f.id ? { ...x, processingProgress: 100, status: "done" } : x)))
-          resolve()
-        }, totalDelay)
-      })
+    try {
+      // Call the backend API
+      const analysisResults = await analyzeFilesWithBackend(filesToAnalyze);
 
-    for (let i = 0; i < files.length; i++) {
-      const f = files[i]
-      if (f.status === "uploaded" || f.status === "done") {
-        await processOne(f, i)
-      }
+      // Update results
+      setResults(analysisResults);
+
+      // Set all files to done status
+      setFiles((prev) =>
+        prev.map((f) =>
+          filesToAnalyze.some((fta) => fta.id === f.id)
+            ? { ...f, status: "done" as FileStatus, processingProgress: 100 }
+            : f
+        )
+      );
+    } catch (error) {
+      console.error("Analysis failed:", error);
+
+      // Add error to errors list
+      setErrors((prev) => [
+        ...prev,
+        `Analysis failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+      ]);
+
+      // Set files back to uploaded status on error
+      setFiles((prev) =>
+        prev.map((f) =>
+          filesToAnalyze.some((fta) => fta.id === f.id)
+            ? { ...f, status: "uploaded" as FileStatus, processingProgress: 0 }
+            : f
+        )
+      );
+    } finally {
+      clearInterval(progressInterval);
+      setAnalyzing(false);
     }
-    setAnalyzing(false)
-  }
+  };
 
   const dismissError = (i: number) => {
-    setErrors((prev) => prev.filter((_, idx) => idx !== i))
-  }
+    setErrors((prev) => prev.filter((_, idx) => idx !== i));
+  };
 
   const clearAll = () => {
     setFiles((prev) => {
-      prev.forEach((f) => f.previewUrl && URL.revokeObjectURL(f.previewUrl))
-      return []
-    })
-    setResults([])
-    setErrors([])
-    setAnalyzing(false)
-  }
+      prev.forEach((f) => f.previewUrl && URL.revokeObjectURL(f.previewUrl));
+      return [];
+    });
+    setResults([]);
+    setErrors([]);
+    setAnalyzing(false);
+  };
 
   return (
     <main className="relative min-h-screen bg-background text-foreground overflow-hidden">
@@ -313,10 +404,32 @@ export default function Page() {
 
       <div className="relative mx-auto max-w-6xl px-4 py-10 md:py-14">
         <header className="mb-8 md:mb-12">
-          <h1 className="text-pretty text-3xl md:text-4xl font-semibold tracking-tight">AI File Analyzer</h1>
-          <p className="text-pretty mt-2 text-sm md:text-base text-muted-foreground">
-            Upload files, then analyze them with smooth, modern animations.
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-pretty text-3xl md:text-4xl font-semibold tracking-tight">
+                AI File Analyzer
+              </h1>
+            </div>
+            {/* Backend Status Indicator */}
+            <div className="flex items-center gap-2">
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  backendConnected === null
+                    ? "bg-yellow-500 animate-pulse"
+                    : backendConnected
+                    ? "bg-green-500"
+                    : "bg-red-500"
+                }`}
+              />
+              <span className="text-xs text-muted-foreground">
+                {backendConnected === null
+                  ? "Checking backend..."
+                  : backendConnected
+                  ? "AI Backend Connected"
+                  : "Backend Offline"}
+              </span>
+            </div>
+          </div>
         </header>
 
         {/* Errors */}
@@ -343,7 +456,11 @@ export default function Page() {
 
         {/* Upload Area */}
         <section className="mb-8 md:mb-10">
-          <UploadArea accept={ACCEPT} onSelect={onFilesSelected} className="rounded-xl" />
+          <UploadArea
+            accept={ACCEPT}
+            onSelect={onFilesSelected}
+            className="rounded-xl"
+          />
         </section>
 
         {/* Files Grid */}
@@ -354,17 +471,23 @@ export default function Page() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={analyze}
-                  disabled={!canAnalyze || analyzing}
+                  disabled={!canAnalyze || analyzing || !backendConnected}
                   className={cn(
                     "inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-primary-foreground transition-all",
                     "hover:translate-y-[1px] hover:shadow-[0_0_0_3px_var(--color-primary)/20]",
-                    "disabled:opacity-60 disabled:hover:translate-y-0 disabled:cursor-not-allowed",
+                    "disabled:opacity-60 disabled:hover:translate-y-0 disabled:cursor-not-allowed cursor-pointer",
+                    !backendConnected && "bg-red-500 hover:bg-red-600"
                   )}
                 >
                   {analyzing ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
                       Analyzing...
+                    </>
+                  ) : !backendConnected ? (
+                    <>
+                      <AlertCircle className="h-4 w-4" />
+                      Backend Offline
                     </>
                   ) : (
                     <>
@@ -405,14 +528,15 @@ export default function Page() {
         {hasFiles && (
           <section className="mb-16">
             <h2 className="mb-3 text-lg font-medium">Results</h2>
-            <ResultsTable results={results} isProcessing={analyzing || files.some((f) => f.status === "processing")} />
+            <ResultsTable
+              results={results}
+              isProcessing={
+                analyzing || files.some((f) => f.status === "processing")
+              }
+            />
           </section>
         )}
-
-        <footer className="pt-8 text-center text-xs text-muted-foreground">
-          Built with smooth animations, modern UI, and pure Tailwind styling.
-        </footer>
       </div>
     </main>
-  )
+  );
 }
