@@ -163,49 +163,18 @@ KEY FINDINGS:
             elif in_findings and line.startswith('•'):
                 findings.append(line.replace('•', '').strip())
         
-        # Clean up and compress response for UI readability
-        def _truncate_sentence(text: str, max_chars: int = 180) -> str:
-            t = (text or "").strip()
-            if len(t) <= max_chars:
-                return t
-            # try to cut at the last period within limit
-            cut = t.rfind('.', 0, max_chars)
-            if cut != -1 and cut >= int(max_chars * 0.6):
-                return t[:cut + 1].strip()
-            return (t[:max_chars].rstrip(' ,.\n\t') + '…')
-
-        # Description: keep first 1-2 sentences and cap length
+        # Clean up description
         description = description.strip()
         if not description:
             description = f"{file_name} appears to be a {file_type} file with potential data content."
-        else:
-            # keep up to two sentences
-            sentences = [s.strip() for s in description.replace('\n', ' ').split('.') if s.strip()]
-            if sentences:
-                description = '. '.join(sentences[:2])
-                if not description.endswith('.'):
-                    description += '.'
-            description = _truncate_sentence(description, 220)
         
-        # Findings: ensure at most 3 concise bullets, each trimmed
+        # If no findings, create generic ones
         if not findings:
             findings = [
                 f"File type: {file_type}",
                 "Content analysis required for detailed assessment",
                 "Standard security protocols apply"
             ]
-        # Normalize bullets: remove leading symbols and trim
-        normalized = []
-        for item in findings:
-            item_text = str(item).lstrip('•-* ').strip()
-            # Prefer first sentence if multiple
-            first_sentence = item_text.split('. ')[0].strip()
-            concise = _truncate_sentence(first_sentence, 140)
-            if concise:
-                normalized.append(concise)
-            if len(normalized) >= 3:
-                break
-        findings = normalized or findings[:3]
         
         return {
             "description": description,
