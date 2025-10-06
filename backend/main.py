@@ -7,6 +7,29 @@ import google.generativeai as genai
 from pathlib import Path
 from typing import List, Dict
 import json
+import sys
+import base64
+
+# Add file-cleanser to path
+file_cleanser_path = os.path.join(os.path.dirname(__file__), '..', 'file-cleanser', 'src')
+sys.path.insert(0, file_cleanser_path)
+
+# Import file-cleanser modules with absolute imports
+try:
+    import config as file_cleanser_config
+    import universal_processor
+    import sensitive_detector
+    import text_cleaner
+    
+    # Create instances
+    Config = file_cleanser_config.Config
+    UniversalFileProcessor = universal_processor.UniversalFileProcessor
+    SensitiveDataDetector = sensitive_detector.SensitiveDataDetector
+    TextCleaner = text_cleaner.TextCleaner
+except ImportError as e:
+    print(f"Error importing file-cleanser modules: {e}")
+    print("Make sure all dependencies are installed: pip install -r requirements.txt")
+    sys.exit(1)
 
 # Initialize FastAPI app
 app = FastAPI(title="File Analyzer Backend", version="1.0.0")
@@ -23,7 +46,17 @@ app.add_middleware(
 # Configure Gemini API
 API_KEY = "AIzaSyAdLamwSmWes7xQxf8mI0X3JtmhRNe35qQ"
 genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel("gemini-2.5-flash")
+model = genai.GenerativeModel("gemini-2.5-flash", generation_config={
+    "max_output_tokens": 2048,  # Increase max tokens for longer responses
+    "temperature": 0.7,
+    "top_p": 0.8,
+    "top_k": 40
+})
+
+# Initialize file-cleanser components
+processor = UniversalFileProcessor()
+sensitive_detector = SensitiveDataDetector()
+text_cleaner = TextCleaner()
 
 # Supported file formats
 SUPPORTED_FORMATS = [
@@ -52,11 +85,42 @@ def get_file_type(file_extension: str) -> str:
     else:
         return file_extension.upper().replace('.', '')
 
-def analyze_file_with_ai(file_path: str, file_name: str, file_type: str) -> Dict:
-    """Analyze file using Gemini AI"""
+def redact_file(file_path: str) -> tuple[str, str]:
+    """Redact sensitive data from file and return (redacted_file_path, redacted_image_base64)"""
     try:
-        # Read file bytes
-        with open(file_path, "rb") as f:
+        # Process file with redaction
+        result = processor.process_file(file_path, sensitive_detector, text_cleaner)
+        
+        # Get the redacted file path
+        redacted_path = file_path
+        redacted_image_base64 = None
+        
+        if result.get('output_files'):
+            redacted_path = result['output_files'][0]
+            
+            # If it's an image file, convert to base64 for frontend display
+            file_ext = Path(file_path).suffix.lower()
+            if file_ext in ['.png', '.jpg', '.jpeg', '.bmp', '.tiff', '.tif', '.webp', '.gif']:
+                try:
+                    with open(redacted_path, "rb") as f:
+                        redacted_image_base64 = base64.b64encode(f.read()).decode('utf-8')
+                except Exception as e:
+                    print(f"Error encoding redacted image: {str(e)}")
+        
+        return redacted_path, redacted_image_base64
+    except Exception as e:
+        print(f"Error redacting file {file_path}: {str(e)}")
+        # Return original file if redaction fails
+        return file_path, None
+
+def analyze_file_with_ai(file_path: str, file_name: str, file_type: str) -> Dict:
+    """Analyze file using Gemini AI after redaction"""
+    try:
+        # First redact the file
+        redacted_file_path, redacted_image_base64 = redact_file(file_path)
+        
+        # Read redacted file bytes
+        with open(redacted_file_path, "rb") as f:
             file_bytes = f.read()
         
         # Determine MIME type
@@ -81,30 +145,31 @@ def analyze_file_with_ai(file_path: str, file_name: str, file_type: str) -> Dict
         file_ext = Path(file_name).suffix.lower()
         mime_type = mime_type_map.get(file_ext, 'application/octet-stream')
         
-        # For images, use the existing AI prompt
+        # For images, analyze redacted content
         if file_type == "IMAGE":
             response = model.generate_content([
-                {"text": """You are analyzing an image for a security systems audit report. 
-Your task is to extract *operational and analytical insights*, not just describe what you see.
+                {"text": """You are analyzing a REDACTED image for a security systems audit report. 
+This image has been processed to remove sensitive data (names, numbers, personal info) while preserving the document structure and layout.
+
+Your task is to analyze what type of document this appears to be and assess its security implications based on the visible structure, layout, and any remaining non-sensitive elements.
 
 Please respond in the following structured format:
 
 FILE DESCRIPTION:
-Provide a factual 2-3 sentence description of the image (what it visually shows — main object, context, and visible text).
+Provide a factual 2-3 sentence description of what type of document this appears to be based on its structure, layout, and visible non-sensitive elements.
 
 KEY FINDINGS:
-List 2-4 concise bullet points that analyze the *function, purpose, or implications* of what is shown. 
+List 2-4 concise bullet points that analyze the *document type, security implications, and operational aspects* based on what you can observe from the redacted structure. 
 Focus on:
-• Security or identity verification aspects (if applicable)
-• Possible vulnerabilities, authenticity indicators, or automation potential
-• Operational relevance (e.g., how it works, what it enables, risks involved)
-• DO NOT restate the visible text or describe appearance in Key Findings.
-• DO NOT write about design, colors, or patterns unless relevant to function.
+• Document type identification (ID card, form, certificate, etc.)
+• Security features visible in the structure
+• Potential vulnerabilities or risks based on document type
+• Operational implications for security systems
 
 Example tone:
-- "Enables digital identity verification through magnetic stripe scanning."
-- "Relies on physical cards, which may be lost or duplicated."
-- "Provides low tamper resistance; suitable only for internal, low-security use."
+- "Appears to be an identity verification document with photo and data fields."
+- "Contains structured layout typical of government-issued identification."
+- "Lacks visible security features like holograms or watermarks."
 
 Format your output exactly as:
 FILE DESCRIPTION: [your description here]
@@ -119,15 +184,20 @@ KEY FINDINGS:
                 }}
             ])
         else:
-            # For non-image files, create a simpler prompt
+            # For non-image files, analyze redacted content
             response = model.generate_content([
-                {"text": f"""Analyze this {file_type} file and provide insights in the following format:
+                {"text": f"""You are analyzing a REDACTED {file_type} file for a security systems audit report.
+This file has been processed to remove sensitive data while preserving its structure and format.
+
+Your task is to analyze what type of data this file contains and assess its security implications based on the visible structure and any remaining non-sensitive elements.
+
+Please respond in the following structured format:
 
 FILE DESCRIPTION:
-Provide a 2-3 sentence description of what this file likely contains based on its type and context.
+Provide a 2-3 sentence description of what type of data this file likely contains based on its structure and format.
 
 KEY FINDINGS:
-List 2-4 bullet points analyzing potential security implications, data sensitivity, or operational aspects of this file type.
+List 2-4 bullet points analyzing potential security implications, data sensitivity, or operational aspects based on the file type and visible structure.
 
 Format your output exactly as:
 FILE DESCRIPTION: [your description here]
@@ -140,6 +210,11 @@ KEY FINDINGS:
         
         # Parse the response
         response_text = response.text.strip()
+        
+        # Debug: Print the full response to see if it's being truncated
+        print(f"Full AI response for {file_name}:")
+        print(response_text)
+        print("=" * 50)
         
         # Extract description and findings
         lines = response_text.split('\n')
@@ -178,7 +253,8 @@ KEY FINDINGS:
         
         return {
             "description": description,
-            "findings": findings
+            "findings": findings,
+            "redacted_image_base64": redacted_image_base64
         }
         
     except Exception as e:
@@ -232,7 +308,8 @@ async def analyze_files(files: List[UploadFile] = File(...)):
                 "fileName": file.filename,
                 "type": file_type,
                 "description": analysis["description"],
-                "keyFindings": analysis["findings"]
+                "keyFindings": analysis["findings"],
+                "redactedImageBase64": analysis.get("redacted_image_base64")
             }
             
             results.append(result)
@@ -246,12 +323,15 @@ async def analyze_files(files: List[UploadFile] = File(...)):
             })
         
         finally:
-            # Clean up temp file
+            # Clean up temp files
             if os.path.exists(tmp_file_path):
                 os.unlink(tmp_file_path)
+            # Clean up redacted file if it's different from original
+            if 'redacted_file_path' in locals() and redacted_file_path != tmp_file_path and os.path.exists(redacted_file_path):
+                os.unlink(redacted_file_path)
     
     return {"results": results}
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)

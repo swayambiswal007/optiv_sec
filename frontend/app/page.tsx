@@ -50,7 +50,6 @@ type TrackedFile = {
   name: string;
   size: number;
   kind: SupportedKind;
-  previewUrl?: string;
   uploadProgress: number;
   processingProgress: number;
   status: FileStatus;
@@ -166,7 +165,7 @@ async function analyzeFilesWithBackend(
   });
 
   try {
-    const response = await fetch("http://localhost:8000/analyze", {
+    const response = await fetch("http://localhost:8001/analyze", {
       method: "POST",
       body: formData,
     });
@@ -227,7 +226,7 @@ export default function Page() {
   useEffect(() => {
     const checkBackend = async () => {
       try {
-        const response = await fetch("http://localhost:8000/");
+        const response = await fetch("http://localhost:8001/");
         if (response.ok) {
           setBackendConnected(true);
         } else {
@@ -241,13 +240,6 @@ export default function Page() {
     checkBackend();
   }, []);
 
-  // cleanup object URLs
-  useEffect(() => {
-    return () => {
-      files.forEach((f) => f.previewUrl && URL.revokeObjectURL(f.previewUrl));
-    };
-  }, [files]);
-
   const onFilesSelected = useCallback((incoming: File[]) => {
     const newErrors: string[] = [];
     const toAdd: TrackedFile[] = [];
@@ -259,15 +251,12 @@ export default function Page() {
       }
       const kind = kindFromFile(file)!;
       const id = uid();
-      const previewUrl =
-        kind === "image" ? URL.createObjectURL(file) : undefined;
       toAdd.push({
         id,
         file,
         name: file.name,
         size: file.size,
         kind,
-        previewUrl,
         uploadProgress: 0,
         processingProgress: 0,
         status: "uploading",
@@ -389,10 +378,7 @@ export default function Page() {
   };
 
   const clearAll = () => {
-    setFiles((prev) => {
-      prev.forEach((f) => f.previewUrl && URL.revokeObjectURL(f.previewUrl));
-      return [];
-    });
+    setFiles([]);
     setResults([]);
     setErrors([]);
     setAnalyzing(false);
@@ -516,7 +502,6 @@ export default function Page() {
                   status={f.status}
                   uploadProgress={f.uploadProgress}
                   processingProgress={f.processingProgress}
-                  previewUrl={f.previewUrl}
                   Icon={iconForKind(f.kind)}
                 />
               ))}

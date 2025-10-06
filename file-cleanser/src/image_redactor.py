@@ -2,7 +2,10 @@
 import cv2
 import numpy as np
 from typing import List, Dict
-from .config import Config
+try:
+    from .config import Config
+except ImportError:
+    from config import Config
 
 class ImageRedactor:
     def __init__(self):

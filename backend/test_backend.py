@@ -2,7 +2,7 @@ import requests
 import json
 
 # Test the backend
-url = "http://localhost:8000/analyze"
+url = "http://localhost:8001/analyze"
 
 # Test with sample file
 with open("../file-cleanser/data/input/sample.png", "rb") as f:
@@ -22,4 +22,4 @@ with open("../file-cleanser/data/input/sample.png", "rb") as f:
             
     except Exception as e:
         print(f"ERROR: Connection error: {e}")
-        print("Make sure the backend is running on http://localhost:8000")
+        print("Make sure the backend is running on http://localhost:8001")

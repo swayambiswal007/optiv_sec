@@ -1,7 +1,10 @@
 # src/sensitive_detector.py - Enhanced for Aadhaar cards and government documents
 import re
 from typing import List, Dict, Tuple
-from .config import Config
+try:
+    from .config import Config
+except ImportError:
+    from config import Config
 
 class SensitiveDataDetector:
     def __init__(self):

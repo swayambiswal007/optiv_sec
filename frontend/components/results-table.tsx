@@ -31,9 +31,9 @@ export function ResultsTable({
 
   return (
     <div className="overflow-hidden rounded-lg border border-border/60 bg-black">
-      <div className="grid grid-cols-12 border-b border-border/60 bg-accent/5 px-3 py-2 text-xs uppercase tracking-wide text-muted-foreground">
-        <div className="col-span-4">File Name</div>
-        <div className="col-span-2">Type</div>
+      <div className="grid grid-cols-10 border-b border-border/60 bg-accent/5 px-3 py-2 text-xs uppercase tracking-wide text-muted-foreground">
+        <div className="col-span-3">File Name</div>
+        <div className="col-span-1">Type</div>
         <div className="col-span-3">Description</div>
         <div className="col-span-3">Key Findings</div>
       </div>
@@ -43,13 +43,13 @@ export function ResultsTable({
           <div
             key={r.id}
             className={cn(
-              "grid grid-cols-12 items-start px-3 py-3 transition",
+              "grid grid-cols-10 items-start px-3 py-3 transition",
               "hover:bg-accent/5 hover:shadow-[0_0_24px_rgba(6,182,212,0.10)]"
             )}
             style={{ animationDelay: `${idx * 40}ms` } as React.CSSProperties}
           >
-            <div className="col-span-4 truncate pr-2">{r.name}</div>
-            <div className="col-span-2 pr-2 uppercase text-xs text-muted-foreground">
+            <div className="col-span-3 truncate pr-2">{r.name}</div>
+            <div className="col-span-1 pr-2 uppercase text-xs text-muted-foreground">
               {r.kind}
             </div>
             <div className="col-span-3 pr-3 text-sm text-pretty">
@@ -69,11 +69,11 @@ export function ResultsTable({
 
         {showSkeletons &&
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="grid grid-cols-12 items-start px-3 py-3">
-              <div className="col-span-4 pr-2">
+            <div key={i} className="grid grid-cols-10 items-start px-3 py-3">
+              <div className="col-span-3 pr-2">
                 <div className="h-4 w-2/3 animate-pulse rounded bg-accent/10" />
               </div>
-              <div className="col-span-2 pr-2">
+              <div className="col-span-1 pr-2">
                 <div className="h-4 w-12 animate-pulse rounded bg-accent/10" />
               </div>
               <div className="col-span-3 pr-3">

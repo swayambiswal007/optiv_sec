@@ -3,3 +3,20 @@ uvicorn[standard]>=0.24.0
 python-multipart>=0.0.6
 google-generativeai>=0.5.3
 python-dotenv>=1.0.0
+
+# File-cleanser dependencies
+pytesseract>=0.3.10
+opencv-python>=4.8.0
+Pillow>=10.0.0
+numpy>=1.24.0
+regex>=2023.8.8
+openpyxl>=3.1.0
+pandas>=2.0.0
+pdf2image>=1.16.3
+python-docx>=0.8.11
+tqdm>=4.65.0
+click>=8.0.0
+colorama>=0.4.6
+PyPDF2>=3.0.0
+lxml>=4.9.0
+python-magic>=0.4.27

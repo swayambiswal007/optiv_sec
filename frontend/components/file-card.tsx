@@ -2,7 +2,6 @@
 
 import type React from "react";
 import { cn } from "@/lib/utils";
-import Image from "next/image";
 
 type Props = {
   index: number;
@@ -12,7 +11,6 @@ type Props = {
   status: "idle" | "uploading" | "uploaded" | "processing" | "done" | "error";
   uploadProgress: number;
   processingProgress: number;
-  previewUrl?: string;
   Icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
 };
 
@@ -24,11 +22,8 @@ export function FileCard({
   status,
   uploadProgress,
   processingProgress,
-  previewUrl,
   Icon,
 }: Props) {
-  const showThumb = kind === "image" && previewUrl;
-
   return (
     <div
       className={cn(
@@ -46,17 +41,7 @@ export function FileCard({
             "transition-colors group-hover:bg-accent/10"
           )}
         >
-          {showThumb ? (
-            <Image
-              src={previewUrl! || "/placeholder.svg"}
-              alt=""
-              width={56}
-              height={56}
-              className="h-14 w-14 rounded-md object-cover"
-            />
-          ) : (
-            <Icon className="h-6 w-6 text-primary" aria-hidden />
-          )}
+          <Icon className="h-6 w-6 text-primary" aria-hidden />
         </div>
 
         <div className="min-w-0 flex-1">

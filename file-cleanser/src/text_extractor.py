@@ -3,7 +3,10 @@ from PIL import Image
 import cv2
 import numpy as np
 from typing import Tuple, List, Dict
-from .config import Config
+try:
+    from .config import Config
+except ImportError:
+    from config import Config
 
 class TextExtractor:
     def __init__(self):

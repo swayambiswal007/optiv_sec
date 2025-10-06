@@ -7,7 +7,10 @@ from typing import Dict, List, Tuple, Any
 import cv2
 import numpy as np
 
-from .config import Config
+try:
+    from .config import Config
+except ImportError:
+    from config import Config
 
 class UniversalFileProcessor:
     """Process any supported file type"""
@@ -135,8 +138,12 @@ class UniversalFileProcessor:
         
     #     return result
     def _process_image(self, file_path: str, sensitive_detector, text_cleaner) -> Dict:
-        from .text_extractor import TextExtractor
-        from .image_redactor import ImageRedactor
+        try:
+            from .text_extractor import TextExtractor
+            from .image_redactor import ImageRedactor
+        except ImportError:
+            from text_extractor import TextExtractor
+            from image_redactor import ImageRedactor
     
         extractor = TextExtractor()
         redactor = ImageRedactor()
@@ -391,8 +398,12 @@ class UniversalFileProcessor:
         # Convert PDF pages to images
         images = convert_from_path(file_path, dpi=Config.PDF_DPI)
         
-        from .text_extractor import TextExtractor
-        from .image_redactor import ImageRedactor
+        try:
+            from .text_extractor import TextExtractor
+            from .image_redactor import ImageRedactor
+        except ImportError:
+            from text_extractor import TextExtractor
+            from image_redactor import ImageRedactor
         
         extractor = TextExtractor()
         redactor = ImageRedactor()
